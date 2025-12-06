@@ -9,4 +9,6 @@ class TemperatureService:
         self.context = context
 
     def get_temperature_ai_module(self) -> float:
-        return 45
+        with open("/sys/class/hwmon/hwmon1/temp1_input", "r") as f:
+            temp = int(f.read().strip())
+        return temp / 1000.0
