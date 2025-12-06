@@ -1,2 +1,5 @@
 thermocontrol:
-  temperature_threshold: 20
+  ai_module:
+    temperature_threshold: 20
+    thermo_control_interval: 20
+    thermo_control_gpio_pin: 18

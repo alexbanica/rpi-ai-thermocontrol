@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-import logging
-from thermocontrol.dto import Context
+from dto import Context
 
 class TemperatureService:
     def __init__(self, context: Context):

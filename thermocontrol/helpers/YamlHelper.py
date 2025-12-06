@@ -6,7 +6,7 @@ import logging
 import yaml
 import os
 
-from thermocontrol.dto import Context
+from dto import Context
 
 class YamlHelper:
     def __init__(self, config_base_dir: str):
@@ -26,8 +26,10 @@ class YamlHelper:
             if config is None:
                 continue
 
-            self.__parse_thermocontrol_config(config, context)
+            self.__parse_thermocontrol_ai_config(config, context)
 
-    def __parse_thermocontrol_config(self, config: dict, context: Context) -> None:
-        thermocontrol_config = config.get('thermocontrol', {})
-        context.temperature_threshold = thermocontrol_config.get('temperature_threshold', 20)
+    def __parse_thermocontrol_ai_config(self, config: dict, context: Context) -> None:
+        thermocontrol_config = config.get('thermocontrol', {}).get('ai_module', {})
+        context.ai_temperature_threshold = thermocontrol_config.get('temperature_threshold', 20)
+        context.ai_thermo_control_interval = thermocontrol_config.get('thermo_control_interval', 5)
+        context.ai_thermo_control_gpio_pin = thermocontrol_config.get('thermo_control_gpio_pin', 18)
