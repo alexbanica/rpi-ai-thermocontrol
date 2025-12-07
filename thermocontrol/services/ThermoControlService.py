@@ -7,7 +7,7 @@ from thermocontrol.services.TemperatureService import TemperatureService
 
 class ThermoControlService:
     def __init__(self, context: Context):
-        logging.info("Initializing ThermoControlService")
+        logging.info(f"Initializing ThermoControlService with context: {context}")
         self.context = context
         self.temperature_service = TemperatureService(context)
         self.rpi_service = RpiService(context)
