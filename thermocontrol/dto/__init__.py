@@ -4,4 +4,4 @@
 __version__ = "1.0.0"
 __author__ = "Ionut-Alexandru Banica"
 
-from dto.Context import Context
+from thermocontrol.dto.Context import Context

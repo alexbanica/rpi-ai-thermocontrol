@@ -1,33 +1,32 @@
 import logging
-import threading
 import time
 
-from dto import Context
-from services.RpiService import RpiService
-from services.TemperatureService import TemperatureService
+from thermocontrol.dto import Context
+from thermocontrol.services.RpiService import RpiService
+from thermocontrol.services.TemperatureService import TemperatureService
 
 class ThermoControlService:
     def __init__(self, context: Context):
+        logging.info("Initializing ThermoControlService")
         self.context = context
         self.temperature_service = TemperatureService(context)
         self.rpi_service = RpiService(context)
 
-        self.ai_thermo_control_thread_is_running = True
-        self.ai_thermo_control_thread = threading.Thread(target=self._run_ai_module_thermo_control, daemon=True)
-        self.ai_thermo_control_thread.start()
+        self.thermo_control_thread_is_running = True
+        self._run_thermo_control()
 
-    def _run_ai_module_thermo_control(self):
-        while self.ai_thermo_control_thread_is_running:
+    def _run_thermo_control(self):
+        while self.thermo_control_thread_is_running:
             try:
+                time.sleep(self.context.thermo_check_interval)
                 temperature = self.temperature_service.get_temperature_ai_module()
+                logging.info(f"AI module temperature: {temperature} >< {self.context.ai_temperature_threshold}")
                 self.rpi_service.ai_module_fan(temperature >= self.context.ai_temperature_threshold)
-                time.sleep(self.context.ai_thermo_control_interval)
             except KeyboardInterrupt:
-                self.ai_thermo_control_thread_is_running = False
+                self.thermo_control_thread_is_running = False
             except Exception as e:
                 logging.error(f"Error occurred during AI module temperature control: {e}")
 
     def __close__(self) -> None:
         self.ai_thermo_control_thread_is_running=False
-        self.ai_thermo_control_thread.join()
         logging.info("Closing ThermoControlService")

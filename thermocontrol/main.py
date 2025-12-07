@@ -2,16 +2,14 @@
 # -*- coding:utf-8 -*-
 
 import logging
-
-from logging.handlers import TimedRotatingFileHandler
-from helpers import YamlHelper
-from dto import Context
-
 import os
 
-from services.ThermoControlService import ThermoControlService
+from logging.handlers import TimedRotatingFileHandler
+from thermocontrol.helpers import YamlHelper
+from thermocontrol.dto import Context
+from thermocontrol.services.ThermoControlService import ThermoControlService
 
-RESOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), '../resources')
+RESOURCES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'resources')
 CONFIG_FILE_PATHS = ["config.yaml", "config.yml", "config.local.yaml", "config.local.yml"]
 
 def _setup_logging():

@@ -19,7 +19,7 @@ setup(
     author_email='ionut.alexandru.banica@gmail.com',
     python_requires='>=3.9',
     package_dir={'': 'thermocontrol'},
-    packages=['thermocontrol', 'thermocontrol.services'],
+    packages=['thermocontrol'],
     install_requires=dependencies,
     classifiers=[
         'Development Status :: 4 - Beta',

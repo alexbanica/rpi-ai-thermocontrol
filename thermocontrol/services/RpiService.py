@@ -1,4 +1,7 @@
-from dto import Context
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+
+from thermocontrol.dto import Context
 from gpiozero import OutputDevice
 
 

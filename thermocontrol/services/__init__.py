@@ -4,4 +4,4 @@
 __version__ = "1.0.0"
 __author__ = "Ionut-Alexandru Banica"
 
-__all__ = ["TemperatureService",]
+__all__ = ["TemperatureService","RpiService","ThermoControlService"]
