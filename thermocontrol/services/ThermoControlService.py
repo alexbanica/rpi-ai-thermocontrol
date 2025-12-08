@@ -21,14 +21,14 @@ class ThermoControlService:
                 time.sleep(self.context.thermo_check_interval)
                 self._ai_module_fan_thermocontrol()
             except KeyboardInterrupt:
-                self.thermo_control_thread_is_running = False
+                self.__close__()
             except Exception as e:
                 logging.error(f"Error occurred during AI module temperature control: {e}")
 
     def _ai_module_fan_thermocontrol(self) -> None:
         temperature = self.temperature_service.get_temperature_ai_module()
         logging.debug(f"AI module temperature: {temperature} >< {self.context.ai_temperature_threshold}")
-        self.rpi_service.ai_module_fan(temperature >= self.context.ai_temperature_threshold)
+        self.rpi_service.toggle_ai_cooler(temperature >= self.context.ai_temperature_threshold)
 
     def __close__(self) -> None:
         self.ai_thermo_control_thread_is_running=False

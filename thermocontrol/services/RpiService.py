@@ -11,8 +11,8 @@ class RpiService:
         self.context = context
         self.ai_module_fan = OutputDevice(context.ai_thermo_control_gpio_pin)
 
-    def ai_module_fan(self, enable: bool):
-        self.ai_module_fan.on() if enable and not self.ai_module_fan.is_active else self.ai_module_fan.off()
+    def toggle_ai_cooler(self, enable: bool):
+        self.ai_module_fan.on() if enable else self.ai_module_fan.off()
 
     def __close__(self) -> None:
         logging.info("Closing RpiService")
