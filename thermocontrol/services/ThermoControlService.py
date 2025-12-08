@@ -31,6 +31,6 @@ class ThermoControlService:
         self.rpi_service.toggle_ai_cooler(temperature >= self.context.ai_temperature_threshold)
 
     def __close__(self) -> None:
-        self.ai_thermo_control_thread_is_running=False
+        self.thermo_control_thread_is_running=False
         self.rpi_service.__close__()
         logging.info("Closing ThermoControlService")
