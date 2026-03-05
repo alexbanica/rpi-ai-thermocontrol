@@ -1,52 +1,71 @@
 # RPI AI Thermocontrol
 
-A Raspberry Pi-based temperature control system designed to monitor and manage AI module temperature using automated fan
-control.
+Python-based temperature control for AI module cooling with GPIO fan management.
 
-## Features
-
-- Real-time AI module temperature monitoring
-- Automated fan control based on temperature threshold
-- Configurable temperature threshold and monitoring interval
-- Daemon thread for continuous temperature management
-- Error handling and logging
-
-## Setup
-
-1. Ensure you have Python 3.12 installed on your Raspberry Pi
-2. Connect a fan to the specified GPIO pin (default: GPIO18)
-3. Configure the temperature sensor path in /sys/class/hwmon/
-4. Verify the hwmon device number (default: hwmon1)
+## Architecture
+The codebase uses a DDD/onion layout:
+- `thermocontrol/domain`: entities and interfaces
+- `thermocontrol/application`: use-case orchestration services
+- `thermocontrol/infrastructure`: GPIO and YAML adapters
+- `thermocontrol/presentation`: runtime controller and entrypoint
+- `thermocontrol/shared`: centralized constants
 
 ## Installation
+1. Create virtualenv:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-1. Clone this repository
-2. Install required dependencies using pip:
+2. Install base dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Install platform-specific extras:
+- Raspberry Pi:
+```bash
+pip install -r requirements/rpi.txt
+```
+- Jetson:
+```bash
+pip install -r requirements/jetson.txt
+```
+- Sunrise X3:
+```bash
+pip install -r requirements/sunrise_x3.txt
+```
+
+4. Install package:
+```bash
+pip install .
+```
+
+5. Install developer dependencies (optional):
+```bash
+pip install -r requirements.dev.txt
+```
 
 ## Configuration
+Default config path: `resources/config.yml`
 
-The system can be configured by modifying the following parameters:
-
-- `ai_temperature_threshold`: Temperature threshold for fan activation in °C (default: 20)
-- `thermo_check_interval`: Monitoring interval in seconds (default: 5)
-- `ai_thermo_control_gpio_pin`: GPIO pin number for fan control (default: 18)
-- `ai_thermo_control_hwmon`: Hardware monitor device name (default: "hwmon1")
-
-Configuration can be done through YAML configuration file or by modifying the Context class defaults.
+Example:
+```yaml
+thermocontrol:
+  check_interval: 10
+  ai_module:
+    temperature_threshold: 55
+    thermo_control_gpio_pin: 18
+    thermo_control_hwmon: hwmon1,hwmon2
+```
 
 ## Usage
+Run the service:
+```bash
+python -m thermocontrol
+```
 
-The system automatically:
-
-- Monitors AI module temperature through the specified hwmon device
-- Checks temperature at configured intervals (default: 5 seconds)
-- Activates the cooling fan when temperature exceeds the threshold (default: 20°C)
-- Deactivates the fan when temperature drops below threshold
-- Handles errors and provides logging
-- Runs as a daemon thread for continuous operation
-
-## Author
-
-Ionut-Alexandru Banica
-
-Version: 1.0.0
+Run in detached screen session:
+```bash
+./run.sh
+```
