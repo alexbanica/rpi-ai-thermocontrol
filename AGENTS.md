@@ -1,10 +1,10 @@
 # AGENTS
 
 ## Active Spec
-- `docs/specs/restructure-format-and-dependencies.md`
+- `docs/specs/fan-toggle-temperature-logging.md`
 
 ## Branch
-- `spec/restructure-format-deps`
+- `spec/fan-toggle-temperature-logging`
 
 ## Architecture Rules
 - DDD/onion split:

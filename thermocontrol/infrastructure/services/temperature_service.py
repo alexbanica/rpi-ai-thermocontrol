@@ -1,6 +1,7 @@
 """Infrastructure service reading temperatures from sysfs hwmon files."""
 
 import logging
+from typing import Optional
 
 from thermocontrol.domain.entities.context_entity import ContextEntity
 from thermocontrol.domain.services.temperature_service_interface import TemperatureServiceInterface
@@ -11,7 +12,7 @@ class TemperatureService(TemperatureServiceInterface):
     def __init__(self, context: ContextEntity):
         self.context = context
 
-    def get_temperature_ai_module(self) -> float:
+    def get_temperature_ai_module(self) -> Optional[float]:
         hwmon_paths = self.context.ai_thermo_control_hwmon.split(",")
 
         for hwmon_path in hwmon_paths:
@@ -22,5 +23,5 @@ class TemperatureService(TemperatureServiceInterface):
             except Exception as error:
                 logging.warning(LogMessages.TEMP_READ_FAILED, trimmed_path, error)
 
-        logging.error(LogMessages.TEMP_READ_ALL_FAILED)
-        return 0.0
+        logging.warning(LogMessages.TEMP_READ_ALL_FAILED)
+        return None
