@@ -1,34 +1,23 @@
-import os
-from setuptools import setup
-
-dependencies = ['gpiozero']
-
-if os.path.exists('/sys/bus/platform/drivers/gpiomem-bcm2835'):
-    dependencies += ['RPi.GPIO', 'spidev']
-elif os.path.exists('/sys/bus/platform/drivers/gpio-x3'):
-    dependencies += ['Hobot.GPIO', 'spidev']
-else:
-    dependencies += ['Jetson.GPIO']
+from setuptools import find_packages, setup
 
 setup(
-    name='rpi-ai-thermocontrol',
-    version='1.0.0',
-    description='Temperature control system for AI module cooling',
-    long_description='A Raspberry Pi based temperature monitoring and fan control system for AI module cooling',
-    author='Ionut-Alexandru Banica',
-    author_email='ionut.alexandru.banica@gmail.com',
-    python_requires='>=3.9',
-    package_dir={'': 'thermocontrol'},
-    packages=['thermocontrol'],
-    install_requires=dependencies,
+    name="rpi-ai-thermocontrol",
+    version="2.0.0",
+    description="Temperature control system for AI module cooling",
+    long_description="A Raspberry Pi based temperature monitoring and fan control system for AI module cooling",
+    author="Ionut-Alexandru Banica",
+    author_email="ionut.alexandru.banica@gmail.com",
+    python_requires=">=3.9",
+    packages=find_packages(include=["thermocontrol", "thermocontrol.*"]),
+    install_requires=["gpiozero", "PyYAML"],
     classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers',
-        'Programming Language :: Python :: 3.9',
-        'Operating System :: POSIX :: Linux',
-        'Environment :: No Input/Output Interaction',
-        'Intended Audience :: System Administrators',
-        'Topic :: System :: Hardware',
-        'Topic :: System :: Monitoring',
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Programming Language :: Python :: 3.9",
+        "Operating System :: POSIX :: Linux",
+        "Environment :: No Input/Output Interaction",
+        "Intended Audience :: System Administrators",
+        "Topic :: System :: Hardware",
+        "Topic :: System :: Monitoring",
     ],
 )

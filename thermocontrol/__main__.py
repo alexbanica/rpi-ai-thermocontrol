@@ -1,10 +1,7 @@
-#!/usr/bin/python
-# -*- coding:utf-8 -*-
-from thermocontrol.dto import Context
+"""Package entrypoint."""
+
 from thermocontrol.main import main
 
-if __name__ == "__main__":
-    context = Context()
 
-    main(context)
-    exit(0)
+if __name__ == "__main__":
+    raise SystemExit(main())
