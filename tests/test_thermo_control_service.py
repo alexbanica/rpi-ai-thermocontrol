@@ -40,7 +40,7 @@ def test_control_ai_module_fan_once_turns_on_fan_at_or_above_threshold(caplog) -
         service.control_ai_module_fan_once()
 
     assert rpi_service.toggles == [True]
-    assert LogMessages.FAN_ENABLED_AT_TEMP % 55.0 in caplog.text
+    assert LogMessages.FAN_ENABLED_AT_TEMP % (55.0, 55) in caplog.text
 
 
 def test_control_ai_module_fan_once_turns_off_fan_below_threshold(caplog) -> None:
@@ -57,8 +57,8 @@ def test_control_ai_module_fan_once_turns_off_fan_below_threshold(caplog) -> Non
         service.control_ai_module_fan_once()
 
     assert rpi_service.toggles == [True, False]
-    assert LogMessages.FAN_ENABLED_AT_TEMP % 60.0 in caplog.text
-    assert LogMessages.FAN_DISABLED_AT_TEMP % 54.9 in caplog.text
+    assert LogMessages.FAN_ENABLED_AT_TEMP % (60.0, 55) in caplog.text
+    assert LogMessages.FAN_DISABLED_AT_TEMP % (54.9, 55) in caplog.text
 
 
 def test_control_ai_module_fan_once_does_not_log_without_state_transition(caplog) -> None:

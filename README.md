@@ -72,6 +72,6 @@ Run in detached screen session:
 
 ## Logging Behavior
 - Fan state transition logs are emitted only when state changes:
-  - `Fan enabled at temperature=<value_celsius>C`
-  - `Fan disabled at temperature=<value_celsius>C`
+  - `Fan enabled at temperature=<current_celsius>/<threshold_celsius>C`
+  - `Fan disabled at temperature=<current_celsius>/<threshold_celsius>C`
 - If no configured hwmon device can be read, the service logs warnings and keeps the fan off.

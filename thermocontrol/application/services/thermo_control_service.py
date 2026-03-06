@@ -52,10 +52,10 @@ class ThermoControlService:
             return
 
         if should_enable_fan:
-            logging.info(LogMessages.FAN_ENABLED_AT_TEMP, temperature)
+            logging.info(LogMessages.FAN_ENABLED_AT_TEMP, temperature, self.context.ai_temperature_threshold)
             return
 
-        logging.info(LogMessages.FAN_DISABLED_AT_TEMP, temperature)
+        logging.info(LogMessages.FAN_DISABLED_AT_TEMP, temperature, self.context.ai_temperature_threshold)
 
     def close(self) -> None:
         self.thermo_control_thread_is_running = False
