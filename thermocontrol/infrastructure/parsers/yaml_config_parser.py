@@ -42,6 +42,16 @@ class YamlConfigParser(ConfigParserInterface):
         context.ai_temperature_threshold = ai_module_config.get(
             ConfigKeys.TEMPERATURE_THRESHOLD, Defaults.AI_TEMPERATURE_THRESHOLD
         )
+        average_read_count = ai_module_config.get(
+            ConfigKeys.TEMPERATURE_AVERAGE_READ_COUNT,
+            Defaults.AI_TEMPERATURE_AVERAGE_READ_COUNT,
+        )
+        if type(average_read_count) is not int or average_read_count < 1:
+            raise ValueError(
+                f"{ConfigKeys.TEMPERATURE_AVERAGE_READ_COUNT} must be an integer "
+                "greater than or equal to 1"
+            )
+        context.ai_temperature_average_read_count = average_read_count
         context.ai_thermo_control_gpio_pin = ai_module_config.get(
             ConfigKeys.THERMO_CONTROL_GPIO_PIN, Defaults.AI_THERMO_CONTROL_GPIO_PIN
         )

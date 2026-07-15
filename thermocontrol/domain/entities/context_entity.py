@@ -9,5 +9,8 @@ from thermocontrol.shared.constants import Defaults
 class ContextEntity:
     thermo_check_interval: int = Defaults.THERMO_CHECK_INTERVAL
     ai_temperature_threshold: int = Defaults.AI_TEMPERATURE_THRESHOLD
+    ai_temperature_average_read_count: int = (
+        Defaults.AI_TEMPERATURE_AVERAGE_READ_COUNT
+    )
     ai_thermo_control_gpio_pin: int = Defaults.AI_THERMO_CONTROL_GPIO_PIN
     ai_thermo_control_hwmon: str = Defaults.AI_THERMO_CONTROL_HWMON

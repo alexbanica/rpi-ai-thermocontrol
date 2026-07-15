@@ -1,5 +1,6 @@
 """Application service orchestrating temperature checks and fan toggling."""
 
+from collections import deque
 import logging
 import time
 from typing import Optional
@@ -22,6 +23,9 @@ class ThermoControlService:
         self.rpi_service = rpi_service
         self.thermo_control_thread_is_running = True
         self.is_fan_enabled = False
+        self.temperature_window: deque[float] = deque(
+            maxlen=self.context.ai_temperature_average_read_count
+        )
         logging.info(LogMessages.INITIALIZING_THERMO_SERVICE, self.context)
 
     def run(self) -> None:
@@ -36,16 +40,23 @@ class ThermoControlService:
 
     def control_ai_module_fan_once(self) -> None:
         temperature = self.temperature_service.get_temperature_ai_module()
-        should_enable_fan = self._should_enable_fan(temperature)
+        should_enable_fan, decision_average = self._determine_fan_state(temperature)
         self.rpi_service.toggle_ai_cooler(should_enable_fan)
-        self._log_fan_toggle(temperature, should_enable_fan)
+        self._log_fan_toggle(decision_average, should_enable_fan)
         self.is_fan_enabled = should_enable_fan
 
-    def _should_enable_fan(self, temperature: Optional[float]) -> bool:
+    def _determine_fan_state(
+        self, temperature: Optional[float]
+    ) -> tuple[bool, Optional[float]]:
         if temperature is None:
-            return False
+            return False, None
 
-        return temperature >= self.context.ai_temperature_threshold
+        self.temperature_window.append(temperature)
+        if len(self.temperature_window) < self.context.ai_temperature_average_read_count:
+            return False, None
+
+        decision_average = sum(self.temperature_window) / len(self.temperature_window)
+        return decision_average >= self.context.ai_temperature_threshold, decision_average
 
     def _log_fan_toggle(self, temperature: Optional[float], should_enable_fan: bool) -> None:
         if self.is_fan_enabled == should_enable_fan or temperature is None:

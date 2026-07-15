@@ -1,10 +1,10 @@
 # AGENTS
 
 ## Active Spec
-- `docs/specs/fan-toggle-temperature-logging.md`
+- `docs/specs/fan-temperature-moving-average.md`
 
 ## Branch
-- `spec/fan-toggle-temperature-logging`
+- `spec/fan-temperature-moving-average`
 
 ## Architecture Rules
 - DDD/onion split:

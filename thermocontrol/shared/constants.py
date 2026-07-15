@@ -9,6 +9,7 @@ class ConfigKeys:
     CHECK_INTERVAL: str = "check_interval"
     AI_MODULE: str = "ai_module"
     TEMPERATURE_THRESHOLD: str = "temperature_threshold"
+    TEMPERATURE_AVERAGE_READ_COUNT: str = "temperature_average_read_count"
     THERMO_CONTROL_GPIO_PIN: str = "thermo_control_gpio_pin"
     THERMO_CONTROL_HWMON: str = "thermo_control_hwmon"
 
@@ -17,6 +18,7 @@ class ConfigKeys:
 class Defaults:
     THERMO_CHECK_INTERVAL: int = 5
     AI_TEMPERATURE_THRESHOLD: int = 20
+    AI_TEMPERATURE_AVERAGE_READ_COUNT: int = 5
     AI_THERMO_CONTROL_GPIO_PIN: int = 18
     AI_THERMO_CONTROL_HWMON: str = "hwmon1"
     LOG_FILE_PATH: str = "/var/log/rpi-ai-thermocontrol.log"
