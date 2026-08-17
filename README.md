@@ -89,3 +89,41 @@ Run in detached screen session:
 - For valid temperature-driven transitions, `current_celsius` is the unrounded
   decision average from the full measurement window.
 - If no configured hwmon device can be read, the service logs warnings and keeps the fan off.
+
+## Release Workflow
+
+This repository uses a released workflow that requires:
+
+- A version tag in exact `MAJOR.MINOR.PATCH` format (for example, `2.0.0`)
+- The release tag text to match the package version in `setup.py` exactly
+- The tag commit to be on `main`
+- The package to be published to Forgejo public organization storage at
+  `https://forgejo.alexlab.nl/api/packages/public/pypi`
+
+Required GitHub Actions secrets:
+
+- `FORGEJO_PACKAGE_USERNAME`
+- `FORGEJO_PACKAGE_TOKEN`
+
+The workflow runs lint and tests on pull requests targeting `main`, pushes to
+`main`, and supported stable tags, using check names `Lint` and `Tests`.
+Release publication runs in job `Publish Forgejo Package` after both checks pass.
+
+Public install check (anonymous):
+
+```bash
+pip install --index-url https://forgejo.alexlab.nl/api/packages/public/pypi/simple rpi-ai-thermocontrol==<exact version>
+```
+
+Publishing behavior:
+
+- Matching versions cannot be overwritten; a duplicate published version fails.
+- The first release is delivered as DRAFT until a live push of a matching tag
+  confirms the anonymous download of that exact version works in Forgejo.
+
+Operator-owned setup requirements:
+
+- Configure branch protection or rulesets so `Lint` and `Tests` must pass before
+  merging to `main`.
+- Restrict release-tag creation to trusted maintainers.
+- Set the two Forgejo secrets above in repository settings.

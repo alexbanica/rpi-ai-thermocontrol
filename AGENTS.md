@@ -1,10 +1,10 @@
 # AGENTS
 
 ## Active Spec
-- `docs/specs/fan-temperature-moving-average.md`
+- `docs/specs/forgejo-python-package-publishing.md`
 
 ## Branch
-- `spec/fan-temperature-moving-average`
+- `spec/forgejo-python-package-publishing`
 
 ## Architecture Rules
 - DDD/onion split:
