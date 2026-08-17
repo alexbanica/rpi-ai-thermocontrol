@@ -11,7 +11,9 @@ on:
     branches:
       - main
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+      # GitHub Actions tag filters are globs, not regular expressions. Run the
+      # release validation for every tag; it fail-closes on unsupported forms.
+      - '*'
 
 concurrency:
   group: publish-${{ github.event_name == 'push' && github.ref_type == 'tag' && github.ref_name || github.run_id }}
@@ -72,17 +74,26 @@ jobs:
 
           TAG_NAME="${GITHUB_REF#refs/tags/}"
 
-          if [[ ! "$TAG_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Tag '$TAG_NAME' is not in MAJOR.MINOR.PATCH format." >&2
+          if [[ "$TAG_NAME" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-beta([1-9][0-9]*))?$ ]]; then
+            RELEASE_VERSION="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
+            if [[ -n "${BASH_REMATCH[4]}" ]]; then
+              EXPECTED_PACKAGE_VERSION="${RELEASE_VERSION}b${BASH_REMATCH[5]}"
+            else
+              EXPECTED_PACKAGE_VERSION="$RELEASE_VERSION"
+            fi
+          else
+            echo "Tag '$TAG_NAME' must be MAJOR.MINOR.PATCH or MAJOR.MINOR.PATCH-betaN." >&2
             exit 1
           fi
 
           PACKAGE_VERSION=$(python -c "import pathlib, re, sys; text = pathlib.Path('setup.py').read_text(); match = re.search(r\"version\\s*=\\s*['\\\"]([^'\\\"]+)['\\\"]\", text); print(match.group(1) if match else sys.exit('Unable to read package version from setup.py'))")
 
-          if [[ "$TAG_NAME" != "$PACKAGE_VERSION" ]]; then
-            echo "Tag '$TAG_NAME' does not match package version '$PACKAGE_VERSION'." >&2
+          if [[ "$EXPECTED_PACKAGE_VERSION" != "$PACKAGE_VERSION" ]]; then
+            echo "Tag '$TAG_NAME' maps to package version '$EXPECTED_PACKAGE_VERSION', not '$PACKAGE_VERSION'." >&2
             exit 1
           fi
+
+          echo "PACKAGE_VERSION=$PACKAGE_VERSION" >> "$GITHUB_ENV"
 
           git fetch origin main
           if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
@@ -127,14 +138,13 @@ jobs:
           unset TWINE_USERNAME
           unset TWINE_PASSWORD
 
-          TAG_NAME="${GITHUB_REF#refs/tags/}"
           mkdir -p /tmp/forgejo-publish-verify
 
           for attempt in 1 2 3 4 5; do
             rm -rf /tmp/forgejo-publish-verify/*
 
-            if python -m pip download --no-deps --no-binary :all: --no-input --index-url "https://forgejo.alexlab.nl/api/packages/public/pypi/simple" "rpi-ai-thermocontrol==${TAG_NAME}" -d /tmp/forgejo-publish-verify; then
-              echo "Verified anonymous install for rpi-ai-thermocontrol==$TAG_NAME."
+            if python -m pip download --no-deps --no-binary :all: --no-input --index-url "https://forgejo.alexlab.nl/api/packages/public/pypi/simple" "rpi-ai-thermocontrol==${PACKAGE_VERSION}" -d /tmp/forgejo-publish-verify; then
+              echo "Verified anonymous install for rpi-ai-thermocontrol==$PACKAGE_VERSION."
               break
             fi
 
