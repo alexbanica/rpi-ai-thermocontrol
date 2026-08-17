@@ -21,7 +21,7 @@ The workflow must build with that derived version without requiring a committed
 ## Scope
 
 - Update `.github/workflows/ci-publish.yml` tag triggering, validation, and
-  anonymous-install verification, including its source-build isolation mode.
+  anonymous wheel verification.
 - Make `setup.py` accept an ephemeral `RELEASE_VERSION` value for release
   builds while retaining `1.0.0` as its ordinary local-build default.
 
@@ -36,9 +36,9 @@ GitHub Actions runs the release workflow for numeric-looking tags and
 fail-closes unless the tag exactly matches one supported form. The workflow
 derives the corresponding PEP 440 package version, passes it to the release
 build as `RELEASE_VERSION`, and uses it for anonymous-install verification.
-It explicitly installs and then uses the runner's `setuptools` build tooling,
-rather than trying to resolve it from the Forgejo-only package index while
-downloading the source distribution.
+The verification downloads only the published wheel, matching the receiver's
+release path and avoiding a later source-distribution metadata build that lacks
+the ephemeral `RELEASE_VERSION` value.
 
 ## Assumptions
 
@@ -58,13 +58,15 @@ before building or uploading artifacts.
   rejection.
 - Local `setup.py --version` checks for the default and an injected release
   version.
-- Confirmed the installed pip supports `--no-build-isolation`.
+- Built a local `1.0.1` wheel with `RELEASE_VERSION` and verified its embedded
+  metadata reports `Version: 1.0.1`.
+- Confirmed pip supports wheel-only download selection.
 - `git diff --check`.
 
 ## Validation skipped
 
 - Hosted Actions rerun and live Forgejo package publication/download with the
-  tag-authoritative release version.
+  tag-authoritative release version and wheel-only verification.
 
 ## Documentation changes
 

@@ -22,14 +22,16 @@ Status: Approved
 4. Passed the tag-derived version to the release build through
    `RELEASE_VERSION`, which `setup.py` uses without changing local defaults.
 5. Verified downloads against that same tag-derived package version.
-6. Disabled build isolation only for the anonymous source-distribution download
-   so pip does not request build dependencies from Forgejo's package index.
+6. Matched the receiver's anonymous verification by downloading only the
+   published wheel, avoiding source metadata regeneration outside the release
+   environment.
 7. Recorded this completed-work specification and plan.
 
 ## Validation run
 
 - Local stable, beta, and invalid-tag parser simulations; default/injected
-  `setup.py` version checks; pip option check.
+  `setup.py` version checks; injected-version wheel metadata check; wheel-only
+  pip option check.
 - `git diff --check`.
 
 ## Validation skipped
