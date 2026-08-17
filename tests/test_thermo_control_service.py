@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from thermocontrol.application.services.thermo_control_service import ThermoControlService
 from thermocontrol.domain.entities.context_entity import ContextEntity
@@ -8,10 +9,10 @@ from thermocontrol.shared.constants import LogMessages
 
 
 class FakeTemperatureService(TemperatureServiceInterface):
-    def __init__(self, temperatures: list[float | None]):
+    def __init__(self, temperatures: list[Optional[float]]):
         self.temperatures = temperatures
 
-    def get_temperature_ai_module(self) -> float | None:
+    def get_temperature_ai_module(self) -> Optional[float]:
         return self.temperatures.pop(0)
 
 
