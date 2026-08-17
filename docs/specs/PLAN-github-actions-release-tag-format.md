@@ -21,11 +21,13 @@ Status: Approved
 3. Compared the parsed `setup.py` version and verified the downloaded package
    against the derived package version.
 4. Set `setup.py` to the existing stable release version, `1.0.0`.
-5. Recorded this completed-work specification and plan.
+5. Disabled build isolation only for the anonymous source-distribution download
+   so pip does not request build dependencies from Forgejo's package index.
+6. Recorded this completed-work specification and plan.
 
 ## Validation run
 
-- Local stable, beta, and invalid-tag parser simulations.
+- Local stable, beta, and invalid-tag parser simulations; pip option check.
 - `git diff --check`.
 
 ## Validation skipped

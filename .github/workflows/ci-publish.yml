@@ -66,7 +66,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install publish tooling
-        run: python -m pip install build twine
+        run: python -m pip install build setuptools twine
 
       - name: Validate tag and package version
         run: |
@@ -143,7 +143,7 @@ jobs:
           for attempt in 1 2 3 4 5; do
             rm -rf /tmp/forgejo-publish-verify/*
 
-            if python -m pip download --no-deps --no-binary :all: --no-input --index-url "https://forgejo.alexlab.nl/api/packages/public/pypi/simple" "rpi-ai-thermocontrol==${PACKAGE_VERSION}" -d /tmp/forgejo-publish-verify; then
+            if python -m pip download --no-deps --no-binary :all: --no-build-isolation --no-input --index-url "https://forgejo.alexlab.nl/api/packages/public/pypi/simple" "rpi-ai-thermocontrol==${PACKAGE_VERSION}" -d /tmp/forgejo-publish-verify; then
               echo "Verified anonymous install for rpi-ai-thermocontrol==$PACKAGE_VERSION."
               break
             fi

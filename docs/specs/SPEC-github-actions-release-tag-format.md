@@ -16,7 +16,7 @@ directly to the package version. A beta tag maps to its PEP 440 package version:
 ## Scope
 
 - Update `.github/workflows/ci-publish.yml` tag triggering, validation, and
-  anonymous-install verification.
+  anonymous-install verification, including its source-build isolation mode.
 - Align `setup.py` package metadata with the existing `1.0.0` release tag.
 
 ## Out of scope
@@ -30,6 +30,9 @@ GitHub Actions runs the release-validation job for any pushed tag. The job
 fail-closes unless the tag exactly matches one supported form, derives the
 corresponding PEP 440 package version, and requires that version to match
 `setup.py`. The anonymous install check uses that derived package version.
+It explicitly installs and then uses the runner's `setuptools` build tooling,
+rather than trying to resolve it from the Forgejo-only package index while
+downloading the source distribution.
 
 ## Assumptions
 
@@ -49,11 +52,13 @@ tag to pass the exact-version check.
 
 - Local Bash simulations for stable and beta tag mappings, plus invalid-tag
   rejection.
+- Confirmed the installed pip supports `--no-build-isolation`.
 - `git diff --check`.
 
 ## Validation skipped
 
-- Hosted Actions rerun and live Forgejo package publication/download.
+- Hosted Actions rerun and live Forgejo package publication/download with the
+  corrected source-distribution verification mode.
 
 ## Documentation changes
 
