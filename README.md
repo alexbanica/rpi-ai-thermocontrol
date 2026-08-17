@@ -94,8 +94,10 @@ Run in detached screen session:
 
 This repository uses a released workflow that requires:
 
-- A version tag in exact `MAJOR.MINOR.PATCH` format (for example, `2.0.0`)
-- The release tag text to match the package version in `setup.py` exactly
+- A stable `MAJOR.MINOR.PATCH` tag or beta `MAJOR.MINOR.PATCH-betaN` tag, where
+  `N` is a positive integer
+- Stable tags map to the same package version; beta tags map to PEP 440
+  `MAJOR.MINOR.PATCHbN`
 - The tag commit to be on `main`
 - The package to be published to Forgejo public organization storage at
   `https://forgejo.alexlab.nl/api/packages/public/pypi`
@@ -105,9 +107,13 @@ Required GitHub Actions secrets:
 - `FORGEJO_PACKAGE_USERNAME`
 - `FORGEJO_PACKAGE_TOKEN`
 
-The workflow runs lint and tests on pull requests targeting `main`, pushes to
-`main`, and supported stable tags, using check names `Lint` and `Tests`.
-Release publication runs in job `Publish Forgejo Package` after both checks pass.
+`.github/workflows/ci.yml` runs lint and tests on pull requests targeting `main`
+and pushes to `main`, using check names `Lint` and `Tests`.
+`.github/workflows/publish.yml` repeats those gates for supported stable and beta
+tags, then publishes in `Publish Forgejo package` after both pass. Both workflows
+pin external actions to immutable commit SHAs, disable persisted checkout
+credentials, and use per-workflow/per-ref concurrency. Dependabot groups weekly
+GitHub Actions updates.
 
 Public install check (anonymous):
 
