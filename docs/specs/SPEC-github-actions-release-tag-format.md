@@ -4,7 +4,8 @@ Status: Approved
 
 ## Purpose
 
-Repair Forgejo package publication for numeric stable and beta release tags.
+Make the release tag the authoritative Forgejo package version, following the
+existing `rpi-groove-ir-receiver` release model.
 
 ## Requested behavior
 
@@ -13,11 +14,16 @@ The release workflow accepts only Git tags `MAJOR.MINOR.PATCH` and
 directly to the package version. A beta tag maps to its PEP 440 package version:
 `1.0.0-beta1` maps to `1.0.0b1`.
 
+The workflow must build with that derived version without requiring a committed
+`setup.py` version to match the tag or requiring the tagged commit to be on
+`main`.
+
 ## Scope
 
 - Update `.github/workflows/ci-publish.yml` tag triggering, validation, and
   anonymous-install verification, including its source-build isolation mode.
-- Align `setup.py` package metadata with the existing `1.0.0` release tag.
+- Make `setup.py` accept an ephemeral `RELEASE_VERSION` value for release
+  builds while retaining `1.0.0` as its ordinary local-build default.
 
 ## Out of scope
 
@@ -26,10 +32,10 @@ directly to the package version. A beta tag maps to its PEP 440 package version:
 
 ## Deterministic behavior delivered
 
-GitHub Actions runs the release-validation job for any pushed tag. The job
-fail-closes unless the tag exactly matches one supported form, derives the
-corresponding PEP 440 package version, and requires that version to match
-`setup.py`. The anonymous install check uses that derived package version.
+GitHub Actions runs the release workflow for numeric-looking tags and
+fail-closes unless the tag exactly matches one supported form. The workflow
+derives the corresponding PEP 440 package version, passes it to the release
+build as `RELEASE_VERSION`, and uses it for anonymous-install verification.
 It explicitly installs and then uses the runner's `setuptools` build tooling,
 rather than trying to resolve it from the Forgejo-only package index while
 downloading the source distribution.
@@ -37,28 +43,28 @@ downloading the source distribution.
 ## Assumptions
 
 Beta package metadata uses standard PEP 440 `bN` notation, as required by
-Python build and package tooling.
+Python build and package tooling. Non-release local builds use the default
+`setup.py` version unless `RELEASE_VERSION` is explicitly set.
 
 ## Impact
 
-`1.0.0` publishes only when `setup.py` is `1.0.0`; `1.0.0-beta1` publishes
-only when `setup.py` is `1.0.0b1`. Unsupported tags run validation and fail
+`1.0.1` builds and publishes package version `1.0.1` without a source-version
+edit. `1.0.1-beta1` builds and publishes `1.0.1b1`. Unsupported tags fail
 before building or uploading artifacts.
-
-The current package metadata is set to `1.0.0`, allowing the existing `1.0.0`
-tag to pass the exact-version check.
 
 ## Validation performed
 
 - Local Bash simulations for stable and beta tag mappings, plus invalid-tag
   rejection.
+- Local `setup.py --version` checks for the default and an injected release
+  version.
 - Confirmed the installed pip supports `--no-build-isolation`.
 - `git diff --check`.
 
 ## Validation skipped
 
 - Hosted Actions rerun and live Forgejo package publication/download with the
-  corrected source-distribution verification mode.
+  tag-authoritative release version.
 
 ## Documentation changes
 

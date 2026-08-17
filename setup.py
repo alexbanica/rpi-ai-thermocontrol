@@ -1,8 +1,13 @@
+import os
+
 from setuptools import find_packages, setup
+
+
+PACKAGE_VERSION = os.environ.get("RELEASE_VERSION", "1.0.0")
 
 setup(
     name="rpi-ai-thermocontrol",
-    version="1.0.0",
+    version=PACKAGE_VERSION,
     description="Temperature control system for AI module cooling",
     long_description="A Raspberry Pi based temperature monitoring and fan control system for AI module cooling",
     author="Ionut-Alexandru Banica",
