@@ -1,121 +1,197 @@
 # RPI AI Thermocontrol
 
-Python-based temperature control for AI module cooling with GPIO fan management.
+Python service that reads an AI module temperature from Linux hwmon and controls
+a cooling fan through a GPIO output.
+
+## Service behavior
+
+- The service reads the first available configured
+  `/sys/class/hwmon/<name>/temp1_input` value once per `check_interval`.
+- It keeps a sliding window of valid readings and enables the fan when the full
+  window's average is greater than or equal to `temperature_threshold`.
+- The fan remains off while the initial window is being collected.
+- A failed reading is not added to the window and immediately requests the fan
+  off. Earlier valid readings remain available when reading recovers.
+- `Ctrl+C` performs graceful shutdown: the service drives the fan output low,
+  closes GPIO Zero, and uses `pinctrl` to keep the configured GPIO driven low
+  after the process exits.
+
+The persistent fan-off step requires Raspberry Pi `pinctrl`, permission to run
+it, and wiring where a low control signal means off. It is not guaranteed after
+`SIGKILL`, a crash before cleanup, a reboot, or another process reconfiguring the
+GPIO. A hardware pull-down remains the electrical fail-safe.
 
 ## Architecture
-The codebase uses a DDD/onion layout:
-- `thermocontrol/domain`: entities and interfaces
-- `thermocontrol/application`: use-case orchestration services
-- `thermocontrol/infrastructure`: GPIO and YAML adapters
-- `thermocontrol/presentation`: runtime controller and entrypoint
-- `thermocontrol/shared`: centralized constants
 
-## Installation
-1. Create virtualenv:
+The codebase uses a DDD/onion layout:
+
+- `thermocontrol/domain`: configuration state entities and service contracts
+- `thermocontrol/application`: fan-control use-case orchestration
+- `thermocontrol/infrastructure`: YAML, hwmon, GPIO Zero, and `pinctrl` adapters
+- `thermocontrol/presentation`: runtime wiring and process coordination
+- `thermocontrol/shared`: constants and shared values
+
+Dependencies point inward: domain code does not depend on platform or runtime
+adapters.
+
+## Requirements
+
+- Python 3.9 or newer
+- Linux hwmon entries for the configured temperature devices
+- A GPIO backend supported by GPIO Zero
+- Permission to access GPIO, write `/var/log/rpi-ai-thermocontrol.log`, and run
+  `pinctrl` during graceful shutdown
+
+## Installation from a checkout
+
+Create a virtual environment and install the project:
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m pip install -e .
 ```
 
-2. Install base dependencies:
+Platform dependency files are also available:
+
 ```bash
-pip install -r requirements.txt
+# Raspberry Pi using RPi.GPIO
+python -m pip install -r requirements/rpi.txt
+
+# NVIDIA Jetson
+python -m pip install -r requirements/jetson.txt
+
+# Sunrise X3
+python -m pip install -r requirements/sunrise_x3.txt
 ```
 
-3. Install platform-specific extras:
-- Raspberry Pi:
+Install developer tooling only when needed:
+
 ```bash
-pip install -r requirements/rpi.txt
-```
-- Jetson:
-```bash
-pip install -r requirements/jetson.txt
-```
-- Sunrise X3:
-```bash
-pip install -r requirements/sunrise_x3.txt
+python -m pip install -r requirements.dev.txt
 ```
 
-4. Install package:
+### Raspberry Pi 5 with Python 3.13
+
+Use the OS-provided `lgpio` backend:
+
 ```bash
-pip install .
+sudo apt update
+sudo apt install python3-lgpio
 ```
 
-5. Install developer dependencies (optional):
-```bash
-pip install -r requirements.dev.txt
+Allow the project virtual environment to see OS-provided Python packages by
+setting this value in `.venv/pyvenv.cfg`:
+
+```ini
+include-system-site-packages = true
 ```
+
+Verify the backend:
+
+```bash
+.venv/bin/python -c 'import lgpio; print("lgpio loaded from", lgpio.__file__)'
+```
+
+Select it at runtime with `GPIOZERO_PIN_FACTORY=lgpio`, as shown below.
 
 ## Configuration
-Default config path: `resources/config.yml`
 
-Example:
+The runtime looks for these files, in order, under the `resources/` directory
+next to the source checkout's `thermocontrol/` package:
+
+1. `config.yaml`
+2. `config.yml`
+3. `config.local.yaml`
+4. `config.local.yml`
+
+Every discovered file is parsed in sequence. Values in a later file replace
+earlier values, while keys omitted from that later file reset to the code
+defaults. The repository default is `resources/config.yml`:
+
 ```yaml
 thermocontrol:
   check_interval: 10
   ai_module:
-    temperature_threshold: 55
+    temperature_threshold: 60
     temperature_average_read_count: 5
     thermo_control_gpio_pin: 18
     thermo_control_hwmon: hwmon1,hwmon2
 ```
 
-`temperature_average_read_count` controls the number of recent valid AI-module
-temperature measurements used for fan decisions. It defaults to `5` when
-omitted and must be an integer greater than or equal to `1`.
+`thermo_control_hwmon` is a comma-separated fallback list. Each temperature file
+contains millidegrees Celsius and is converted to Celsius before the decision.
 
-One measurement is attempted per `check_interval`. The fan stays off until a
-complete averaging window has been collected, so the default configuration
-requires five valid measurement cycles before the first threshold decision. If
-a read fails, the fan is immediately requested off, the failed read is excluded,
-and previously collected valid measurements remain available when reading
-recovers.
+`temperature_average_read_count` must be an integer greater than or equal to
+`1`. If configuration files or individual values are absent, the code defaults
+to a 5-second interval, 20 C threshold, 5-reading window, GPIO 18, and `hwmon1`.
 
-## Usage
-Run the service:
+## Running the service
+
+Run from the repository root so the checked-out `resources/` configuration is
+used:
+
 ```bash
-python -m thermocontrol
+sudo env GPIOZERO_PIN_FACTORY=lgpio .venv/bin/python -m thermocontrol
 ```
 
-Run in detached screen session:
+For a detached screen session:
+
 ```bash
-./run.sh
+sudo screen -dmS thermocontrol \
+  env GPIOZERO_PIN_FACTORY=lgpio \
+  "$PWD/.venv/bin/python" -m thermocontrol
+sudo screen -r thermocontrol
 ```
 
-## Logging Behavior
-- Fan state transition logs are emitted only when state changes:
-  - `Fan enabled at temperature=<current_celsius>/<threshold_celsius>C`
-  - `Fan disabled at temperature=<current_celsius>/<threshold_celsius>C`
-- For valid temperature-driven transitions, `current_celsius` is the unrounded
-  decision average from the full measurement window.
-- If no configured hwmon device can be read, the service logs warnings and keeps the fan off.
+Press `Ctrl+C` in the attached session for graceful fan cleanup. The repository
+does not provide a systemd unit.
 
-## Release Workflow
+## Logging
 
-This repository uses a released workflow that requires:
+Logs are written both to stderr and `/var/log/rpi-ai-thermocontrol.log`. The log
+file rotates at midnight, with five backups retained.
 
-- A stable `MAJOR.MINOR.PATCH` tag or beta `MAJOR.MINOR.PATCH-betaN` tag, where
-  `N` is a positive integer
-- Stable tags map to the same package version; beta tags map to PEP 440
-  `MAJOR.MINOR.PATCHbN`
-- The tag commit to be on `main`
-- The package to be published to Forgejo public organization storage at
-  `https://forgejo.alexlab.nl/api/packages/public/pypi`
+Fan transition messages are emitted only when state changes:
+
+- `Fan enabled at temperature=<current_celsius>/<threshold_celsius>C`
+- `Fan disabled at temperature=<current_celsius>/<threshold_celsius>C`
+
+For temperature-driven transitions, `current_celsius` is the unrounded average
+from the full measurement window. Read failures and failed persistent fan-off
+operations are logged as warnings or errors.
+
+## Development validation
+
+```bash
+ruff check .
+python -m pytest
+```
+
+Repository policy permits creating or maintaining automated tests only for
+deterministic domain source logic. Use static, syntax, lint, build, dry-run,
+smoke, runtime, or operator checks for non-domain changes.
+
+## Release workflow
+
+`.github/workflows/ci.yml` runs Python 3.9 `Lint` and `Tests` jobs for pull
+requests targeting `main` and pushes to `main`.
+
+`.github/workflows/publish.yml` accepts unprefixed stable
+`MAJOR.MINOR.PATCH` tags and beta `MAJOR.MINOR.PATCH-betaN` tags. Stable tags map
+directly to the package version; beta tags map to the PEP 440 form
+`MAJOR.MINOR.PATCHbN`. After lint and tests pass, the workflow builds one wheel
+and one source distribution, checks both with Twine, publishes them to Forgejo,
+and verifies anonymous installation of the exact version.
 
 Required GitHub Actions secrets:
 
 - `FORGEJO_PACKAGE_USERNAME`
 - `FORGEJO_PACKAGE_TOKEN`
 
-`.github/workflows/ci.yml` runs lint and tests on pull requests targeting `main`
-and pushes to `main`, using check names `Lint` and `Tests`.
-`.github/workflows/publish.yml` repeats those gates for supported stable and beta
-tags, then publishes in `Publish Forgejo package` after both pass. Both workflows
-pin external actions to immutable commit SHAs, disable persisted checkout
-credentials, and use per-workflow/per-ref concurrency. Dependabot groups weekly
-GitHub Actions updates.
-
-Public install check (anonymous):
+Public installation uses Forgejo for this project and public PyPI for third-party
+dependencies:
 
 ```bash
 python -m pip install \
@@ -124,18 +200,7 @@ python -m pip install \
   rpi-ai-thermocontrol==<exact version>
 ```
 
-Forgejo supplies `rpi-ai-thermocontrol`; the additional public PyPI index
-supplies dependencies such as `PyYAML` that are not published in Forgejo.
-
-Publishing behavior:
-
-- Matching versions cannot be overwritten; a duplicate published version fails.
-- The first release is delivered as DRAFT until a live push of a matching tag
-  confirms the anonymous download of that exact version works in Forgejo.
-
-Operator-owned setup requirements:
-
-- Configure branch protection or rulesets so `Lint` and `Tests` must pass before
-  merging to `main`.
-- Restrict release-tag creation to trusted maintainers.
-- Set the two Forgejo secrets above in repository settings.
+Published versions cannot be overwritten. Repository operators must protect
+release-tag creation and configure the `Lint` and `Tests` checks as required
+before merging; the publish workflow itself does not verify that a tagged commit
+belongs to `main`.
