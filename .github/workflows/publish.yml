@@ -142,8 +142,7 @@ jobs:
               --no-cache-dir \
               --no-input \
               --only-binary rpi-ai-thermocontrol \
-              --index-url "https://forgejo.alexlab.nl/api/packages/public/pypi/simple" \
-              --extra-index-url "https://pypi.org/simple" \
+              --index-url "https://pypi.alexlab.nl/simple/" \
               --target /tmp/forgejo-publish-verify \
               "rpi-ai-thermocontrol==${PACKAGE_VERSION}"; then
               echo "Verified anonymous install for rpi-ai-thermocontrol==$PACKAGE_VERSION."
