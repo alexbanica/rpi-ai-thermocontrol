@@ -178,12 +178,28 @@ smoke, runtime, or operator checks for non-domain changes.
 `.github/workflows/ci.yml` runs Python 3.9 `Lint` and `Tests` jobs for pull
 requests targeting `main` and pushes to `main`.
 
+Both workflows use read-only repository permissions, immutable
+`actions/checkout@v7.0.1` and `actions/setup-python@v7.0.0` pins, non-persisted
+checkout credentials, and pip caches keyed by the runtime and development
+requirements. CI cancels a superseded run for the same workflow/ref; publishing
+does not cancel an in-progress run for the same tag. Dependabot groups GitHub
+Actions updates weekly. Tests run as `python -m pytest` so the checked-out
+package remains importable without a separate editable install.
+
 `.github/workflows/publish.yml` accepts unprefixed stable
 `MAJOR.MINOR.PATCH` tags and beta `MAJOR.MINOR.PATCH-betaN` tags. Stable tags map
 directly to the package version; beta tags map to the PEP 440 form
 `MAJOR.MINOR.PATCHbN`. After lint and tests pass, the workflow builds one wheel
 and one source distribution, checks both with Twine, publishes them to Forgejo,
 and verifies anonymous installation of the exact version.
+
+The pushed tag is the authoritative release-version input. The workflow checks
+out that exact ref, derives the package version, and supplies it through
+`RELEASE_VERSION` only in the release build; ordinary local builds retain the
+`setup.py` default. Unsupported tags fail before build or upload. Anonymous
+verification downloads the exact published wheel only, disables pip caching,
+resolves third-party dependencies from public PyPI, retries registry propagation
+up to five times, and runs without Twine credentials.
 
 Required GitHub Actions secrets:
 
@@ -204,3 +220,11 @@ Published versions cannot be overwritten. Repository operators must protect
 release-tag creation and configure the `Lint` and `Tests` checks as required
 before merging; the publish workflow itself does not verify that a tagged commit
 belongs to `main`.
+
+The split workflows, static tag/version derivation, local build metadata, and
+wheel-only command structure have been checked deterministically. A new hosted
+tag run, authenticated Forgejo upload, and anonymous installation have not been
+verified by this documentation cleanup. Release delivery remains DRAFT until an
+authorized tag exercises that complete path successfully. Raspberry Pi GPIO,
+shutdown persistence, log permissions, and physical fan behavior likewise
+remain operator-validated runtime concerns.
