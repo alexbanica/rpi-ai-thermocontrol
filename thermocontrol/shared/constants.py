@@ -48,4 +48,7 @@ class LogMessages:
     FAN_DISABLED_AT_TEMP: str = "Fan disabled at temperature=%s/%sC"
     CLOSING_RPI: str = "Closing RpiService"
     TURNING_OFF_FAN: str = "Turning off AI module fan"
+    PINCTRL_NOT_FOUND: str = "Unable to keep fan off after exit: pinctrl was not found"
+    FAN_OFF_PERSIST_FAILED: str = "Unable to keep fan GPIO %s low after exit: %s"
+    FAN_OFF_PERSISTED: str = "Fan GPIO %s will remain driven low after exit"
     FAN_STOPPED: str = "Stopped AI module fan"
