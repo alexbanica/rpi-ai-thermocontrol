@@ -138,7 +138,14 @@ jobs:
           for attempt in 1 2 3 4 5; do
             rm -rf /tmp/forgejo-publish-verify/*
 
-            if python -m pip download --no-deps --only-binary :all: --no-input --index-url "https://forgejo.alexlab.nl/api/packages/public/pypi/simple" "rpi-ai-thermocontrol==${PACKAGE_VERSION}" -d /tmp/forgejo-publish-verify; then
+            if python -m pip install \
+              --no-cache-dir \
+              --no-input \
+              --only-binary rpi-ai-thermocontrol \
+              --index-url "https://forgejo.alexlab.nl/api/packages/public/pypi/simple" \
+              --extra-index-url "https://pypi.org/simple" \
+              --target /tmp/forgejo-publish-verify \
+              "rpi-ai-thermocontrol==${PACKAGE_VERSION}"; then
               echo "Verified anonymous install for rpi-ai-thermocontrol==$PACKAGE_VERSION."
               break
             fi

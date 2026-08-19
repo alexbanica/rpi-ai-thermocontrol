@@ -118,8 +118,14 @@ GitHub Actions updates.
 Public install check (anonymous):
 
 ```bash
-pip install --index-url https://forgejo.alexlab.nl/api/packages/public/pypi/simple rpi-ai-thermocontrol==<exact version>
+python -m pip install \
+  --index-url https://forgejo.alexlab.nl/api/packages/public/pypi/simple \
+  --extra-index-url https://pypi.org/simple \
+  rpi-ai-thermocontrol==<exact version>
 ```
+
+Forgejo supplies `rpi-ai-thermocontrol`; the additional public PyPI index
+supplies dependencies such as `PyYAML` that are not published in Forgejo.
 
 Publishing behavior:
 
