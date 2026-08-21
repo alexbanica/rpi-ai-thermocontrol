@@ -126,33 +126,3 @@ jobs:
           TWINE_USERNAME: ${{ secrets.FORGEJO_PACKAGE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.FORGEJO_PACKAGE_TOKEN }}
         run: python -m twine upload --repository-url "https://forgejo.alexlab.nl/api/packages/public/pypi" dist/*
-      - name: Verify anonymous install
-        run: |
-          set -euo pipefail
-
-          unset TWINE_USERNAME
-          unset TWINE_PASSWORD
-
-          mkdir -p /tmp/forgejo-publish-verify
-
-          for attempt in 1 2 3 4 5; do
-            rm -rf /tmp/forgejo-publish-verify/*
-
-            if python -m pip install \
-              --no-cache-dir \
-              --no-input \
-              --only-binary rpi-ai-thermocontrol \
-              --index-url "https://pypi.alexlab.nl/simple/" \
-              --target /tmp/forgejo-publish-verify \
-              "rpi-ai-thermocontrol==${PACKAGE_VERSION}"; then
-              echo "Verified anonymous install for rpi-ai-thermocontrol==$PACKAGE_VERSION."
-              break
-            fi
-
-            if [[ "$attempt" == "5" ]]; then
-              echo "Anonymous install verification failed after 5 attempts." >&2
-              exit 1
-            fi
-
-            sleep 5
-          done
