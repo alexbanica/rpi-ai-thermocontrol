@@ -14,6 +14,7 @@ setup(
     author_email="ionut.alexandru.banica@gmail.com",
     python_requires=">=3.9",
     packages=find_packages(include=["thermocontrol", "thermocontrol.*"]),
+    package_data={"thermocontrol": ["resources/config.yml"]},
     install_requires=["gpiozero", "PyYAML"],
     classifiers=[
         "Development Status :: 4 - Beta",

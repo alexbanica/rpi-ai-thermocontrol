@@ -2,6 +2,7 @@
 
 import logging
 import os
+from importlib.resources import files
 from logging.handlers import TimedRotatingFileHandler
 
 from thermocontrol.application.services.thermo_control_service import ThermoControlService
@@ -14,9 +15,14 @@ from thermocontrol.shared.constants import Defaults, LogMessages, RuntimeConfig
 
 class RuntimeController:
     def __init__(self):
-        self.resources_dir = os.path.join(
+        source_resources_dir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))),
             "resources",
+        )
+        self.resources_dir = (
+            source_resources_dir
+            if os.path.isdir(source_resources_dir)
+            else str(files("thermocontrol").joinpath("resources"))
         )
 
     def run(self) -> int:

@@ -98,8 +98,8 @@ Select it at runtime with `GPIOZERO_PIN_FACTORY=lgpio`, as shown below.
 
 ## Configuration
 
-The runtime looks for these files, in order, under the `resources/` directory
-next to the source checkout's `thermocontrol/` package:
+When running from a source checkout, the runtime looks for these files, in
+order, under the checkout's top-level `resources/` directory:
 
 1. `config.yaml`
 2. `config.yml`
@@ -108,7 +108,10 @@ next to the source checkout's `thermocontrol/` package:
 
 Every discovered file is parsed in sequence. Values in a later file replace
 earlier values, while keys omitted from that later file reset to the code
-defaults. The repository default is `resources/config.yml`:
+defaults. An installed distribution uses its bundled
+`thermocontrol/resources/config.yml` when the source-checkout directory is not
+present, so the repository default remains available after package
+installation. The repository and packaged default is:
 
 ```yaml
 thermocontrol:

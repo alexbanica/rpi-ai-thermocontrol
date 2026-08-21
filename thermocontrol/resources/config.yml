@@ -1,0 +1,7 @@
+thermocontrol:
+  check_interval: 10
+  ai_module:
+    temperature_threshold: 60
+    temperature_average_read_count: 5
+    thermo_control_gpio_pin: 18
+    thermo_control_hwmon: hwmon1,hwmon2
