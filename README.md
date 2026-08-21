@@ -191,7 +191,8 @@ package remains importable without a separate editable install.
 directly to the package version; beta tags map to the PEP 440 form
 `MAJOR.MINOR.PATCHbN`. After lint and tests pass, the workflow builds one wheel
 and one source distribution, checks both with Twine, publishes them to Forgejo,
-and verifies anonymous installation of the exact version.
+and verifies anonymous installation of the exact version through the routed
+package index.
 
 The pushed tag is the authoritative release-version input. The workflow checks
 out that exact ref, derives the package version, and supplies it through
@@ -206,13 +207,13 @@ Required GitHub Actions secrets:
 - `FORGEJO_PACKAGE_USERNAME`
 - `FORGEJO_PACKAGE_TOKEN`
 
-Public installation uses Forgejo for this project and public PyPI for third-party
-dependencies:
+Publication uploads directly to Forgejo. Public installation and dependency
+resolution use the routed package index, which serves this project's
+Forgejo-hosted package and caches public PyPI dependencies:
 
 ```bash
 python -m pip install \
-  --index-url https://forgejo.alexlab.nl/api/packages/public/pypi/simple \
-  --extra-index-url https://pypi.org/simple \
+  --index-url https://pypi.alexlab.nl/simple/ \
   rpi-ai-thermocontrol==<exact version>
 ```
 
