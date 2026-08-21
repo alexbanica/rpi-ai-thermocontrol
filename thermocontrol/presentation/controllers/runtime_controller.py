@@ -26,6 +26,9 @@ class RuntimeController:
             logging.info(LogMessages.STARTING)
             config_parser = YamlConfigParser(self.resources_dir)
             config_parser.parse_config(context, list(RuntimeConfig.CONFIG_FILE_PATHS))
+            selected_config_path = os.environ.get(RuntimeConfig.CONFIG_PATH_ENVIRONMENT_VARIABLE)
+            if selected_config_path:
+                config_parser.parse_selected_config(context, selected_config_path)
             service = ThermoControlService(
                 context=context,
                 temperature_service=TemperatureService(context),

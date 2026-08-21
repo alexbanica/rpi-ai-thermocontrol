@@ -127,6 +127,41 @@ contains millidegrees Celsius and is converted to Celsius before the decision.
 `1`. If configuration files or individual values are absent, the code defaults
 to a 5-second interval, 20 C threshold, 5-reading window, GPIO 18, and `hwmon1`.
 
+To load one additional configuration file, set
+`THERMOCONTROL_CONFIG_PATH`. The path may be absolute:
+
+```bash
+THERMOCONTROL_CONFIG_PATH=/etc/rpi-ai-thermocontrol/config.yml \
+  .venv/bin/python -m thermocontrol
+```
+
+It may also be relative to the process working directory:
+
+```bash
+THERMOCONTROL_CONFIG_PATH=deploy/thermocontrol.yml \
+  .venv/bin/python -m thermocontrol
+```
+
+The selected file is loaded after all four built-in files, so it has the
+highest precedence. Unlike each built-in file, it is a partial overlay: only
+fields present in the selected file change. Omitted fields are preserved at
+every nested level. For example, this overlay changes only the temperature
+threshold and preserves `check_interval` and every other `ai_module` value
+established by the built-in files:
+
+```yaml
+thermocontrol:
+  ai_module:
+    temperature_threshold: 65
+```
+
+If `THERMOCONTROL_CONFIG_PATH` is unset or empty, the runtime uses only the
+built-in sequence with its existing behavior. An empty selected YAML document
+is also a valid no-op overlay. When a non-empty path is explicitly selected,
+startup fails if it is missing, unreadable, a directory, malformed YAML, a
+non-mapping YAML document, or contains an invalid configuration value. Such a
+file is never silently ignored or partially accepted.
+
 ## Running the service
 
 Run from the repository root so the checked-out `resources/` configuration is

@@ -26,6 +26,7 @@ class Defaults:
 
 @dataclass(frozen=True)
 class RuntimeConfig:
+    CONFIG_PATH_ENVIRONMENT_VARIABLE: str = "THERMOCONTROL_CONFIG_PATH"
     CONFIG_FILE_PATHS: tuple[str, ...] = (
         "config.yaml",
         "config.yml",
